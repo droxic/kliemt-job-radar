@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kliemt VLT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      ::before,
+      ::after {
+        box-sizing: border-box;
+      }
+      body {
+        padding: 1rem;
+        margin: 0;
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Open Sans', sans-serif;
+        font-optical-sizing: auto;
+        font-style: normal;
+        color: #4c4c4c;
+        font-variation-settings: 'wdth' 100;
+      }
+      section {
+        width: 100%;
+        max-width: 600px;
+      }
+      .logo {
+        width: 185px;
+      }
+      aside {
+        color: #b81f66;
+      }
+      h1 {
+        font-weight: 400;
+      }
+      .btn {
+        border: none;
+        padding: 1rem;
+        font-size: 1.2rem;
+        border-radius: 0;
+        display: block;
+        width: 100%;
+        margin: 1rem 0;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+        text-decoration: none;
+      }
+      textarea {
+        width: 100%;
+        line-height: 1.5;
+        height: 7.5em;
+        font: inherit;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px #00000050;
+      }
+      .btn.accept {
+        background: rgb(90, 194, 81);
+        color: #fff;
+      }
+      .btn.decline {
+        background: rgb(226, 75, 88);
+        color: #fff;
+      }
+      .btn.submit {
+        background: rgb(97, 97, 97);
+        color: #fff;
+      }
+      @media (min-width: 500px) {
+        .button-wrapper {
+          display: flex;
+          margin: -5px;
+        }
+        .btn {
+          margin: 5px;
+        }
+      }
+      .tooltip {
+        display: inline-block;
+        background: #ccc;
+        border-radius: 100vw;
+        width: 1rem;
+        height: 1rem;
+        margin-right: 0.2rem;
+        text-align: center;
+        font-size: 0.75rem;
+        position: relative;
+        cursor: help;
+
+        &:hover::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 1.25rem;
+          left: -8rem;
+          background: #4c4c4c;
+          color: #fff;
+          padding: 0.5rem;
+          width: 20rem;
+          max-width: 80vw;
+          text-align: left;
+        }
+      }
+
+      .page {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <aside>
+        <h1>Freiwilligenprogramm</h1>
+      </aside>
+
+      <div id="page-pending" class="page">
+        <p>Hallo <span id="name">-</span>,</p>
+        <p>
+          Du kannst am Freiwilligenprogramm von
+          <span id="company">-</span> teilnehmen.
+        </p>
+        <p>
+          Wir können dir das folgende Angebot unter Berücksichtigung deiner Rahmenbedingungen
+          machen:
+        </p>
+        <p>
+          Abfindungszahlung
+          <span
+            class="tooltip"
+            data-tooltip="Das ist eine Gesamtsumme. Eine genauere Zusammensetzung ergibt sich aus den Unterlagen, die wir bei Interesse übermitteln"
+            >i</span
+          >: <strong id="severance_total">15.987€</strong>
+        </p>
+        <p id="bonus">Bonus: <strong id="bonus_payout">3.127€</strong></p>
+        <p id="termination">
+          Austritt zum
+          <span class="tooltip" data-tooltip="Bis zu diesem Zeitpunkt wird das Gehalt weitergezahlt"
+            >i</span
+          >: <strong id="termination_date">1.10.2024</strong>
+        </p>
+        <p id="garden_leave">
+          Bezahlte Freistellung ab:
+          <strong id="garden_leave_from">1.10.2024</strong>
+        </p>
+        <p>Früherer Austritt möglich?: <strong id="early_leave">Ja/Nein</strong></p>
+        <p id="early_leave_date">
+          Frühestes Austrittsdatum:
+          <strong id="early_leave_from">1.10.2024</strong>
+        </p>
+        <p id="early_leave_info">
+          Auszahlung von <strong id="remaining_salary_ratio">60%</strong> für jeden Monat des
+          früheren Austritts
+        </p>
+
+        <div class="button-wrapper">
+          <button class="btn accept" id="accept">Interesse</button>
+          <button class="btn decline" id="decline">Kein Interesse</button>
+        </div>
+      </div>
+      <div id="page-accepted" class="page">
+        <p>Danke für Deine Rückmeldung. Wir melden uns kurzfristig bei Dir zum weiteren Vordehen</p>
+      </div>
+      <div id="page-declined" class="page">
+        <p>Danke für Deine Antwort. Sag uns bitte, weshalb Du kein Interesse hast:</p>
+        <textarea id="comment_text"></textarea>
+        <button id="comment" class="btn submit">Einreichen</button>
+      </div>
+      <div id="page-declined-confirm-comments" class="page">
+        <p>Vielen Dank für Deine Rückmeldung.</p>
+      </div>
+    </section>
+
+    <script type="module">
+      import { jwtDecode } from 'https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/build/esm/index.min.js'
+      const tokenEncoded = document.location.search.substring(1)
+      const token = jwtDecode(tokenEncoded)
+
+      fetch(`/api/employees/${token.sub}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + tokenEncoded,
+        },
+      })
+        .then((response) => {
+          if (response.status >= 200 && response.status < 300) {
+            return response.json()
+          }
+          throw new Error(response.statusText)
+        })
+        .then((user) => {
+          initUI(user)
+        })
+
+      function dateFormatter(date) {
+        const formatter = new Intl.DateTimeFormat('de-DE', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        })
+        return formatter.format(date)
+      }
+
+      function currencyFormatter(value) {
+        const formatter = new Intl.NumberFormat('de-DE', {
+          style: 'currency',
+          currency: 'EUR',
+        })
+        return formatter.format(value)
+      }
+
+      function id(name) {
+        return document.getElementById(name)
+      }
+      function hide(element) {
+        element.style.display = 'none'
+      }
+
+      function initUI(user) {
+        const allPages = document.querySelectorAll('.page')
+
+        for (const page of allPages) {
+          hide(page)
+        }
+
+        if (user.vlp_status == 'pending') {
+          id('name').textContent = `${user.first_name} ${user.last_name}`
+          id('company').textContent = `${user.project.clients[0].company_name}`
+          id('early_leave').textContent = user.early_leave ? 'Ja' : 'Nein'
+          id('severance_total').textContent = currencyFormatter(user.severance_total)
+          if (user.bonus_payout > 0) {
+            id('bonus_payout').textContent = currencyFormatter(user.bonus_payout)
+          } else {
+            hide(id('bonus'))
+          }
+
+          if (user.garden_leave_from) {
+            id('garden_leave_from').textContent = dateFormatter(new Date(user.garden_leave_from))
+          } else {
+            hide(id('garden_leave'))
+          }
+
+          if (user.termination_date) {
+            id('termination_date').textContent = dateFormatter(new Date(user.termination_date))
+          } else {
+            hide(id('termination'))
+          }
+
+          id('early_leave').textContent = user.early_leave ? 'Ja' : 'Nein'
+
+          if (user.early_leave && user.early_leave_from) {
+            id('early_leave_from').textContent = dateFormatter(new Date(user.early_leave_from))
+          } else {
+            hide(id('early_leave_date'))
+          }
+
+          if (!user.early_leave) {
+            hide(id('early_leave_info'))
+          }
+
+          id('remaining_salary_ratio').textContent =
+            Math.round(Number(user.remaining_salary_ratio) * 100) + '%'
+
+          id('page-pending').style.display = 'block'
+        }
+        let pageToShow = `page-${user.vlp_status}`
+        if (user.vlp_status == 'declined' && user.comments) {
+          pageToShow += '-confirm-comments'
+        }
+        id(pageToShow).style.display = 'block'
+      }
+
+      id('accept').addEventListener('click', function () {
+        sendResponse('accepted')
+      })
+
+      id('decline').addEventListener('click', function () {
+        sendResponse('declined')
+      })
+
+      id('comment').addEventListener('click', function () {
+        sendResponse('declined', id('comment_text').value)
+      })
+
+      async function sendResponse(answer, comments) {
+        await fetch(`/api/employees/${token.sub}/offer/${answer}`, {
+          method: 'PATCH',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + tokenEncoded,
+          },
+          body: comments ? JSON.stringify({ comments }) : undefined,
+        })
+          .then((response) => {
+            if (response.status >= 200 && response.status < 300) {
+              return response.json()
+            }
+            throw new Error(response.statusText)
+          })
+          .then((user) => {
+            initUI(user)
+          })
+      }
+    </script>
+  </body>
+</html>
