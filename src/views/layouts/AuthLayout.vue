@@ -128,6 +128,12 @@ const profileUrl = computed(() => {
         </span>
         {{ $t('History') }}
       </RouterLink>
+      <a class="sidebar-nav-item --split" title="Home" href="/">
+        <span class="sidebar-icon-holder">
+          <IMdiApps />
+        </span>
+        {{ $t('Home') }}
+      </a>
     </nav>
   </aside>
 

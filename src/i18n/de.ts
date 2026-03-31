@@ -40,6 +40,8 @@ export const de = {
   'Employee comments': 'Kommentare Beschäftigte',
   'Employee data': 'Daten des Beschäftigten',
   'Employee self Service': 'Self-Service für Beschäftigte',
+  'Export URLs': 'URLs exportieren',
+  'Exporting...': 'Wird exportiert...',
   Employees: 'Beschäftigte',
   'employees-duplicates':
     '{count} von diesen sind bereits im Projekt. Die betroffenen Datensätze werden aktualisiert.',
@@ -86,6 +88,7 @@ export const de = {
   'Release to drop files here': 'Loslassen um Datei hinzuzufügen',
   'Remaining Salary Ratio': 'Verbleibendes Gehaltsverhältnis',
   'Remove all': 'Alle entfernen',
+  Row: 'Zeile',
   Search: 'Suche',
   'Seniority In Years': 'Betriebszugehörigkeit in Jahren',
   'Severance Base': 'Basisabfindung',
@@ -112,4 +115,7 @@ export const de = {
   'Winding-up Agreements': 'Abwicklungsvertäge',
   'Winding-up Status': 'Status Abwicklungsverträge',
   Yes: 'Ja',
+  'validation-heading': 'Upload nicht möglich – Pflichtfelder fehlen',
+  'validation-row-error': 'Zeile {row} ({name}): {fields}',
+  'validation-field-missing': 'fehlt',
 }

@@ -68,9 +68,12 @@ export function xlsxToEmployees(fileData: ArrayBuffer) {
 
     return 'no'
   }
+  const hasAnyData = (row: number) =>
+    cellValue('A', row) || cellValue('B', row) || cellValue('G', row) || cellValue('AL', row)
+
   const employees: EmployeeInput[] = []
   let row = 6
-  while (cellValue('A', row)) {
+  while (hasAnyData(row)) {
     const employee: EmployeeInput = {
       // kts
       first_name: cellValue('A', row),
@@ -155,6 +158,12 @@ export function xlsxToEmployees(fileData: ArrayBuffer) {
       winding_up: castToBool(cellValue('BJ', row)),
       deuv_number: cellValue('W', row),
     }
+    // Attach raw cell values for boolean mandatory fields so validation can
+    // distinguish "explicitly set to no" from "cell is empty / missing"
+    const raw = employee as unknown as Record<string, unknown>;
+    raw._raw_to_be_dismissed = cellValue('AL', row);
+    raw._raw_early_leave = cellValue('BF', row);
+    raw._raw_winding_up = cellValue('BJ', row);
     employees.push(employee)
     row += 1
   }

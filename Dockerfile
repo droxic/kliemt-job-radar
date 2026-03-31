@@ -1,11 +1,22 @@
 # Stage 1: Build the Vue app
 FROM node:22-alpine AS build
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+
+# Install Yarn (not included by default in node:22-alpine)
+RUN apk add --no-cache yarn
+
+# Copy dependency manifests
+COPY package.json yarn.lock ./
+
+# Use Yarn (frozen-lockfile = reproducible builds)
+RUN yarn install --frozen-lockfile
+
+# Copy source code
 COPY . .
 
-RUN npm run build
+# Build with Yarn
+RUN yarn build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine

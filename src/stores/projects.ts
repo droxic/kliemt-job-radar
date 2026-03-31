@@ -94,5 +94,25 @@ export const useProjectsStore = defineStore('projects', {
     async getToken(employee: Employee) {
       return api.get(`employees/${employee.id}/token`, { responseAs: 'text' })
     },
+    async exportEmployeeUrls(projectId: number) {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`/api/employees/project/${projectId}/export-urls`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`)
+      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `employee-urls-project-${projectId}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    },
   },
 })

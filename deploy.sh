@@ -1,13 +1,32 @@
 #!/bin/bash
-set -e # Exit on any error
-echo "Building Docker image..."
-docker build -t kts-vlt .
-echo "Tagging image..."
-docker tag kts-vlt kliemt.azurecr.io/kts-vlt
+set -e
+
+ENV=${1:-staging}
+
+if [ "$ENV" != "staging" ] && [ "$ENV" != "production" ]; then
+  echo "Usage: ./deploy.sh [staging|production]"
+  exit 1
+fi
+
+IMAGE=kliemt.azurecr.io/kts-vlt
+TAG=$ENV
+GIT_SHA=$(git rev-parse --short HEAD)
+
+echo "Building Docker image for $ENV..."
+docker build --platform linux/amd64 -t $IMAGE:$TAG -t $IMAGE:$TAG-$GIT_SHA .
+
 echo "Pushing to Kliemt Azure Container Registry..."
-docker push kliemt.azurecr.io/kts-vlt
-echo "Restarting deployment kts-vlt..."
-kubectl rollout restart deployment kts-vlt
+docker push $IMAGE:$TAG
+docker push $IMAGE:$TAG-$GIT_SHA
+
+if [ "$ENV" = "staging" ]; then
+  CONTEXT="default"
+else
+  CONTEXT="kts-production"
+fi
+
+echo "Restarting deployment kts-vlt on $CONTEXT..."
+kubectl --context $CONTEXT rollout restart deployment kts-vlt
 echo "Waiting for rollout to complete..."
-kubectl rollout status deployment kts-vlt --timeout=120s
-echo "Deployment restarted successfully!"
+kubectl --context $CONTEXT rollout status deployment kts-vlt --timeout=120s
+echo "Deployment to $ENV completed successfully!"

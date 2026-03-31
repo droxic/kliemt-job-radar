@@ -186,3 +186,34 @@ a {
 .btn.--pill {
   border-radius: 50rem;
 }
+
+/* Validation errors */
+.validation-errors {
+  background-color: var(--color-background-error);
+  border: 1px solid #d9534f;
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  max-height: 15rem;
+  overflow-y: auto;
+  color: #2c2c2c;
+}
+.validation-errors-heading {
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: #a94442;
+}
+.validation-errors-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+.validation-errors-list li {
+  padding: 0.15rem 0;
+  border-bottom: 1px solid rgba(217, 83, 79, 0.15);
+}
+.validation-errors-list li:last-child {
+  border-bottom: none;
+}

@@ -34,6 +34,8 @@ const i18n = createI18n({
       'employees-selected': 'You have queued to upload {count} employees',
       'employees-duplicates':
         '{count} of them already exist in the project. Their details will be updated.',
+      'validation-heading': 'Upload not possible – mandatory fields are missing',
+      Row: 'Row',
     },
     de,
   },

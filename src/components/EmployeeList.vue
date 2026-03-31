@@ -19,6 +19,7 @@ import IMaterialSymbolsChildCareOutline from '~icons/material-symbols/child-care
 import IMaterialSymbolsDiamondOutline from '~icons/material-symbols/diamond-outline'
 import IMaterialSymbolsCheckCircleOutline from '~icons/material-symbols/check-circle-outline'
 import IMaterialSymbolsCommentSharp from '~icons/material-symbols/comment-sharp'
+import IMaterialSymbolsDownload from '~icons/material-symbols/download'
 
 const { t } = useI18n()
 const { projectId } = defineProps<{
@@ -440,6 +441,18 @@ function copyEmployeeUrl() {
   el.select()
   document.execCommand('copy')
 }
+
+const exporting = ref(false)
+async function exportEmployeeUrls() {
+  exporting.value = true
+  try {
+    await projectsStore.exportEmployeeUrls(projectId)
+  } catch (error) {
+    console.error('Export failed:', error)
+  } finally {
+    exporting.value = false
+  }
+}
 </script>
 
 <template>
@@ -456,6 +469,13 @@ function copyEmployeeUrl() {
     </button>
     <button class="btn --primary --outline --pill" @click="columnsModalRef?.show">
       <IMdiFormatColumns /> {{ $t('Columns') }}
+    </button>
+    <button
+      class="btn --primary --outline --pill"
+      @click="exportEmployeeUrls"
+      :disabled="!authStore.roles.includes('lawyer') || employees.length === 0 || exporting"
+    >
+      <IMaterialSymbolsDownload /> {{ exporting ? $t('Exporting...') : $t('Export URLs') }}
     </button>
     <button
       class="btn --primary --pill"
