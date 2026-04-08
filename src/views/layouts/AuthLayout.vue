@@ -2,12 +2,10 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import KliemtLogo from '@/components/KliemtLogo.vue'
-import { useAuthStore } from '@/stores/user'
 import { AppRouteNames } from '@/router'
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 
-const authStore = useAuthStore()
 const sidebarOpen = ref(false)
 const isDark = ref(false)
 
@@ -57,8 +55,8 @@ const router = useRouter()
 const logoutReturnRoute = router.resolve({ name: AppRouteNames.HOME })
 const logoutReturnUrl = new URL(logoutReturnRoute.href, window.location.origin).href
 
-async function logout() {
-  await authStore.logout()
+function logout() {
+  localStorage.removeItem('access_token')
   const params = new URLSearchParams({
     redirect_uri: logoutReturnUrl,
   })

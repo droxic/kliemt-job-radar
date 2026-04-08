@@ -16,22 +16,34 @@ const authStore = useAuthStore()
 
 const status = ref('Please wait...')
 
-try {
-  const codeVerifier = sessionStorage.getItem('code_verifier');
-  const { access_token } = await api.post<{access_token: string}>('sso/token', {
-    grant_type: 'authorization_code',
-    client_id: import.meta.env.VITE_OAUTH_CLIENT_ID,
-    redirect_uri: loginCallbackUrl,
-    code,
-    code_verifier: codeVerifier,
-  });
+const codeVerifier = sessionStorage.getItem('code_verifier_vlt');
 
-  await authStore.loginWithToken(access_token);
-  sessionStorage.removeItem('code_verifier');
-  routerPush(AppRouteNames.HOME)
-} catch (error) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  status.value = (error as any).body?.message ?? 'Somethnig went wrong. Please retry.'
+if (!code || !codeVerifier) {
+  // Missing code or verifier — restart login flow
+  sessionStorage.removeItem('code_verifier_vlt')
+  routerPush(AppRouteNames.LOGIN)
+} else {
+  try {
+    const { access_token } = await api.post<{access_token: string}>('sso/token', {
+      grant_type: 'authorization_code',
+      client_id: import.meta.env.VITE_OAUTH_CLIENT_ID,
+      redirect_uri: loginCallbackUrl,
+      code,
+      code_verifier: codeVerifier,
+    });
+
+    sessionStorage.removeItem('code_verifier_vlt')
+    await authStore.loginWithToken(access_token);
+    routerPush(AppRouteNames.HOME)
+  } catch (error) {
+    sessionStorage.removeItem('code_verifier_vlt')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const message = (error as any).body?.message ?? 'Something went wrong.'
+    console.error('SSO token exchange failed:', message)
+    // Redirect back to login to start a fresh PKCE flow
+    status.value = `${message} Redirecting to login...`
+    setTimeout(() => routerPush(AppRouteNames.LOGIN), 2000)
+  }
 }
 </script>
 <template>

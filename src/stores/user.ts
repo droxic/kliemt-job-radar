@@ -23,10 +23,17 @@ export const useAuthStore = defineStore('auth', {
     },
     async loginWithToken(access_token: string) {
       storeAccessToken(access_token)
-      this.loadUser()
+      await this.loadUser()
     },
+   /*
+      Not used in the SSO logout flow. Mutating store state here triggers
+      $subscribe in App.vue, which redirects to /login before the browser
+      can navigate to /api/sso/logout — re-logging the user in via the
+      still-valid SSO session. Logout is handled entirely by redirecting
+      to the server endpoint (see AuthLayout.vue).
+    */
     async logout() {
-      // this.user = null
+      this.user = null
       deleteAccessToken()
     },
     async loadUser() {
@@ -34,6 +41,8 @@ export const useAuthStore = defineStore('auth', {
         this.user = await api.get<User>('auth/profile')
       } catch (error) {
         console.error(error)
+        this.user = null
+        deleteAccessToken()
       }
     },
   },

@@ -21,10 +21,17 @@ const layout = computed(() => {
 
 const authStore = useAuthStore()
 
+let checkingAuth = false
 async function checkAuth() {
-  await router.isReady();
-  if (!authStore.authenticated && !route.matched[0]?.meta.noAuth) {
-    routerPush(AppRouteNames.LOGIN)
+  if (checkingAuth) return
+  checkingAuth = true
+  try {
+    await router.isReady();
+    if (!authStore.authenticated && !route.matched[0]?.meta.noAuth) {
+      routerPush(AppRouteNames.LOGIN)
+    }
+  } finally {
+    checkingAuth = false
   }
 }
 checkAuth()

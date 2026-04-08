@@ -13,7 +13,7 @@ import { de } from './i18n/de'
 const app = createApp(App)
 const pinia = createPinia()
 pinia.use(createPersistedState({
-  key: (storeKey) => `persisted_${storeKey}`,
+  key: (storeKey) => `persisted_vlt_${storeKey}`,
   storage: {
     getItem(key) {
       return Cookies.get(key) || null;
