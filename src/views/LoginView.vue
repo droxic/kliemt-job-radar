@@ -6,13 +6,16 @@ import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 
 const authStore = useAuthStore()
-if (authStore.authenticated) {
-  routerPush(AppRouteNames.HOME)
-}
 
 const router = useRouter()
 
 onMounted(async () => {
+  await authStore.ensureAuthValidated()
+  if (authStore.authenticated) {
+    routerPush(AppRouteNames.HOME)
+    return
+  }
+
   const loginCallbackRoute = router.resolve({name:AppRouteNames.LOGIN_CALLBACK})
   const loginCallbackUrl = new URL(loginCallbackRoute.href, window.location.origin).href
 

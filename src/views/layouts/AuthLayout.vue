@@ -79,6 +79,7 @@ const profileUrl = computed(() => {
       <li><a href="/rbi">Restructuring Budget Indicator</a></li>
       <li><a href="/vlt" class="active">Voluntary Leaver Tool</a></li>
       <li><a href="/spe">Social Plan Estimator</a></li>
+      <li><a href="/job-radar">Job Radar</a></li>
     </ul>
     <button class="theme-switch btn" role="switch" title="Theme" @click="toggleTheme">
       <IMdiWhiteBalanceSunny v-if="!isDark" />

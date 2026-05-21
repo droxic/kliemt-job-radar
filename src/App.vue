@@ -27,6 +27,9 @@ async function checkAuth() {
   checkingAuth = true
   try {
     await router.isReady();
+    if (!route.matched[0]?.meta.noAuth) {
+      await authStore.ensureAuthValidated()
+    }
     if (!authStore.authenticated && !route.matched[0]?.meta.noAuth) {
       routerPush(AppRouteNames.LOGIN)
     }
