@@ -1,11 +1,11 @@
 {
-  "name": "kliemt-vlt",
+  "name": "kliemt-job-radar",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only -- --base=/vlt/\"",
+    "build": "run-p type-check \"build-only -- --base=/job-radar/\"",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",
@@ -23,8 +23,7 @@
     "pkce-challenge": "^5.0.0",
     "vue": "^3.5.13",
     "vue-i18n": "^11.1.2",
-    "vue-router": "^4.5.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@iconify-json/bi": "^1.2.2",

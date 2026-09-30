@@ -8,7 +8,7 @@ if [ "$ENV" != "staging" ] && [ "$ENV" != "production" ]; then
   exit 1
 fi
 
-IMAGE=kliemt.azurecr.io/kts-vlt
+IMAGE=kliemt.azurecr.io/kts-job-radar
 TAG=$ENV
 GIT_SHA=$(git rev-parse --short HEAD)
 
@@ -25,8 +25,8 @@ else
   CONTEXT="kts-production"
 fi
 
-echo "Restarting deployment kts-vlt on $CONTEXT..."
-kubectl --context $CONTEXT rollout restart deployment kts-vlt
+echo "Restarting deployment kts-job-radar on $CONTEXT..."
+kubectl --context $CONTEXT rollout restart deployment kts-job-radar
 echo "Waiting for rollout to complete..."
-kubectl --context $CONTEXT rollout status deployment kts-vlt --timeout=120s
+kubectl --context $CONTEXT rollout status deployment kts-job-radar --timeout=120s
 echo "Deployment to $ENV completed successfully!"

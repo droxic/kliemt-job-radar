@@ -3,7 +3,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# Install Yarn (not included by default in node:22-alpine)
+# Install Yarn
 RUN apk add --no-cache yarn
 
 # Copy dependency manifests

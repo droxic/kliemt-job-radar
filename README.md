@@ -1,30 +1,40 @@
-# Voluntary Leaver Tool
+# Job Radar
 
-Voluntary Leaver Tool (VLT) is part of Kliemt Transformation Suite (KTS). It is a project based on Vue.
+Job Radar is part of Kliemt Transformation Suite (KTS). It is a Vue-based frontend for project-scoped Job Radar workflows in `kliemt-api`.
+
+## Current workflow
+
+- Navigate through assigned projects.
+- Select an employee in a project.
+- Run prompts and persist each run.
+- Review run history and open detailed run results.
+- Add/remove curated matches that remain persistent across prompt runs.
+
+The legacy `/playground` route remains as a compatibility redirect to project-based flow.
 
 ## Installation
 
-All standard Vue practices apply, so refer to docs for the current version of Vue that is used. Generally on a bare bones machine you should:
+All standard Vue practices apply. On a fresh machine:
 
 Install Node/NPM and set up project with:
 
 ```sh
-npm install
+yarn install
 ```
 
 ## Prerequisites
 
-Local development relies on [kliemt-api](https://github.com/droxic/kliemt-api/) to be set up and runnig.
+Local development relies on `kliemt-api` being set up and running.
 
 ## Compile and Hot-Reload for Development
 
 ```sh
-npm run dev
+yarn dev
 ```
 
 ## Deploying
 
-For deploying to staging or production you should refer and use the supplied `deploy.sh` script. 
+For deploying to staging or production, use the supplied `deploy.sh` script.
 
 Prerequisites are that you have docker and kubectl set up with appropriate access to targeted cluster.
 
