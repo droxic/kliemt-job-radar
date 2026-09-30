@@ -1,5 +1,10 @@
 import { defineStore } from 'pinia'
-import type { Employee, EmployeeInput } from './employee.dto'
+import type {
+  Employee,
+  EmployeeInput,
+  JobRadarEmployeeInput,
+  JobRadarEmployeeView,
+} from './employee.dto'
 import { api } from '@/api'
 
 export interface Client {
@@ -38,7 +43,10 @@ const initEmployee = (newEmployee: EmployeeInput): Employee => ({
       : 'not-sent',
 })
 export const useProjectsStore = defineStore('projects', {
-  state: () => ({ projects: [] as Project[] }),
+  state: () => ({
+    projects: [] as Project[],
+    jobRadarEmployees: {} as Record<number, JobRadarEmployeeView[]>,
+  }),
   actions: {
     async loadProjects() {
       this.projects = (await api.get<Project[]>('projects')).map((project) => ({
@@ -71,22 +79,18 @@ export const useProjectsStore = defineStore('projects', {
       this.projects.push(addedProject)
       return addedProject
     },
-    async addEmployees(projectId: number, newEmployees: EmployeeInput[]) {
-      const project = this.projects.find((project) => project.id == projectId)
-      if (!project) return
-
-      for (const newEmployee of newEmployees) {
-        const existingEmployee = project.employees.find(({ email }) => email == newEmployee.email)
-        if (existingEmployee) {
-          Object.assign(existingEmployee, newEmployee)
-        } else {
-          project.employees.push(initEmployee(newEmployee))
-        }
-      }
-      await api.patch<Project>(`projects/${projectId}`, {
-        id: projectId,
-        employees: project.employees,
-      })
+    async loadJobRadarEmployees(projectId: number) {
+      this.jobRadarEmployees[projectId] = await api.get<JobRadarEmployeeView[]>(
+        `job-radar/projects/${projectId}/employees`,
+      )
+    },
+    async addJobRadarEmployee(projectId: number, payload: JobRadarEmployeeInput) {
+      await api.post<JobRadarEmployeeView>(`job-radar/projects/${projectId}/employees`, payload)
+      await this.loadJobRadarEmployees(projectId)
+    },
+    async deleteJobRadarEmployee(projectId: number, jobRadarEmployeeId: number) {
+      await api.delete(`job-radar/employees/${jobRadarEmployeeId}`)
+      await this.loadJobRadarEmployees(projectId)
     },
     async updateEmployee(employee: Employee) {
       return api.patch<Project>(`employees/${employee.id}`, employee)

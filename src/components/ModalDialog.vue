@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+const props = withDefaults(
+  defineProps<{
+    contentClass?: string
+  }>(),
+  {
+    contentClass: '',
+  },
+)
+
 const isOpen = ref(false)
 
 function show() {
@@ -15,7 +24,7 @@ defineExpose({ show, hide })
 <template>
   <div v-if="isOpen" class="modal-backdrop"></div>
   <div v-if="isOpen" class="modal">
-    <div class="modal-content">
+    <div :class="['modal-content', props.contentClass]">
       <slot />
     </div>
   </div>

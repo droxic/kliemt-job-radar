@@ -77,8 +77,9 @@ const profileUrl = computed(() => {
     <ul class="header-nav" role="navigation">
       <li><a href="/sst">Social Selection Tool</a></li>
       <li><a href="/rbi">Restructuring Budget Indicator</a></li>
-      <li><a href="/vlt" class="active">Voluntary Leaver Tool</a></li>
+      <li><a href="/vlt">Voluntary Leaver Tool</a></li>
       <li><a href="/spe">Social Plan Estimator</a></li>
+      <li><a href="/job-radar" class="active">Job Radar</a></li>
     </ul>
     <button class="theme-switch btn" role="switch" title="Theme" @click="toggleTheme">
       <IMdiWhiteBalanceSunny v-if="!isDark" />
@@ -102,29 +103,9 @@ const profileUrl = computed(() => {
         class="sidebar-nav-item"
       >
         <span class="sidebar-icon-holder">
-          <IMaterialSymbolsSignalCellularAlt />
+          <IMaterialSymbolsTravelExploreRounded />
         </span>
-        {{ $t('Projects') }}
-      </RouterLink>
-      <RouterLink
-        :to="{ name: AppRouteNames.CLIENTS }"
-        @click="closeSidebar"
-        class="sidebar-nav-item"
-      >
-        <span class="sidebar-icon-holder">
-          <IMaterialSymbolsGroupOutline />
-        </span>
-        {{ $t('Clients') }}
-      </RouterLink>
-      <RouterLink
-        :to="{ name: AppRouteNames.HISTORY }"
-        @click="closeSidebar"
-        class="sidebar-nav-item"
-      >
-        <span class="sidebar-icon-holder">
-          <IMdiRestoreClock />
-        </span>
-        {{ $t('History') }}
+        Job Radar
       </RouterLink>
       <a class="sidebar-nav-item --split" title="Home" href="/">
         <span class="sidebar-icon-holder">

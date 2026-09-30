@@ -6,20 +6,14 @@ import {
   type ProjectLocation,
 } from '@/stores/projects'
 import Multiselect from '@vueform/multiselect'
-import { computed, reactive, ref, useTemplateRef, watch } from 'vue'
-import DropFile from '@/components/DropFile.vue'
+import { computed, reactive, ref, useTemplateRef } from 'vue'
 import { api } from '@/api'
 import { AppRouteNames, routerPush } from '@/router'
-import type { EmployeeInput } from '@/stores/employee.dto'
-import {
-  validateEmployees,
-  type EmployeeValidationResult,
-} from '@/utils/validateEmployees'
 
 defineEmits(['close'])
 
 const formRef = useTemplateRef('formRef')
-const project: Omit<Project, 'id'> & { employees: EmployeeInput[] } = reactive({
+const project: Omit<Project, 'id'> = reactive({
   title: '',
   clients: [],
   locations: [],
@@ -40,31 +34,12 @@ async function create() {
   routerPush(AppRouteNames.PROJECT, { id: id.toString() })
 }
 
-function removeAllEmployees() {
-  project.employees = []
-}
-
-const employeeValidation = ref<EmployeeValidationResult>({ isValid: true, errors: [] })
-
-watch(
-  () => project.employees,
-  (employees) => {
-    if (employees.length) {
-      employeeValidation.value = validateEmployees(employees)
-    } else {
-      employeeValidation.value = { isValid: true, errors: [] }
-    }
-  },
-  { deep: true },
-)
-
 const canSubmitForm = computed(() => {
   return (
     project.title &&
     project.clients.length &&
     project.locations.length &&
-    (project.clearing_point != 'auto' || project.clearing_point_email?.includes('@')) &&
-    (project.employees.length === 0 || employeeValidation.value.isValid)
+    (project.clearing_point != 'auto' || project.clearing_point_email?.includes('@'))
   )
 })
 const clearingAuto = computed(() => project.clearing_point == 'auto')
@@ -155,40 +130,5 @@ api.get<ProjectLocation[]>('projects/locations').then((data) => {
         required
       />
     </label>
-    <div class="form-group file-upload">
-      {{ $t('Employee data') }}:
-      <div v-if="project.employees.length">
-        <i18n-t keypath="employees-selected" tag="p">
-          <template #count>
-            <strong>{{ project.employees.length }}</strong>
-          </template>
-        </i18n-t>
-        <button class="create-project-remove-btn" @click="removeAllEmployees">
-          {{ $t('Remove all') }}
-        </button>
-      </div>
-      <div v-if="!employeeValidation.isValid" class="validation-errors">
-        <p class="validation-errors-heading">{{ $t('validation-heading') }}</p>
-        <ul class="validation-errors-list">
-          <li v-for="error in employeeValidation.errors" :key="error.row">
-            <strong>{{ $t('Row') || 'Row' }} {{ error.row }} ({{ error.name }}):</strong>
-            {{ error.missingFields.map((f) => $t(f)).join(', ') }}
-          </li>
-        </ul>
-      </div>
-      <DropFile v-model="project.employees" class="form-control" />
-    </div>
   </form>
 </template>
-
-<style>
-.create-project-remove-btn {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  display: inline;
-  text-decoration: underline;
-  cursor: pointer;
-}
-</style>

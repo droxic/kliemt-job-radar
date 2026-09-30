@@ -7,7 +7,7 @@ import NoAuthLayout from './views/layouts/NoAuthLayout.vue'
 import { AppLayouts, AppRouteNames, routerPush } from './router'
 import { useAuthStore } from './stores/user'
 
-const router = useRouter();
+const router = useRouter()
 const route = useRoute()
 
 const layout = computed(() => {
@@ -26,7 +26,10 @@ async function checkAuth() {
   if (checkingAuth) return
   checkingAuth = true
   try {
-    await router.isReady();
+    await router.isReady()
+    if (!route.matched[0]?.meta.noAuth) {
+      await authStore.ensureAuthValidated()
+    }
     if (!authStore.authenticated && !route.matched[0]?.meta.noAuth) {
       routerPush(AppRouteNames.LOGIN)
     }

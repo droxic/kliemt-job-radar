@@ -4,22 +4,11 @@ import { useI18n } from 'vue-i18n'
 import { useProjectsStore } from '@/stores/projects'
 import { useAuthStore } from '@/stores/user'
 import ModalDialog from '@/components/ModalDialog.vue'
-import EmployeesUpload from './EmployeesUpload.vue'
-import type { Employee } from '@/stores/employee.dto'
+import AddEmployeeForm from './AddEmployeeForm.vue'
+import type { JobRadarEmployeeView } from '@/stores/employee.dto'
 
-import IMaterialSymbolsMapSearchOutline from '~icons/material-symbols/map-search-outline'
-import IMaterialSymbolsAlternateEmail from '~icons/material-symbols/alternate-email'
-import IMaterialSymbolsWatchCheckOutline from '~icons/material-symbols/watch-check-outline'
-import IMaterialSymbolsShieldLockSharp from '~icons/material-symbols/shield-lock-sharp'
-import IMaterialSymbolsMoneyBag from '~icons/material-symbols/money-bag'
-import IMaterialSymbolsAccessibleSharp from '~icons/material-symbols/accessible-sharp'
-import IMaterialSymbolsCalendarMonthSharp from '~icons/material-symbols/calendar-month-sharp'
 import IMaterialSymbolsCalendarPersonCheck from '~icons/material-symbols/person-check'
-import IMaterialSymbolsChildCareOutline from '~icons/material-symbols/child-care-outline'
-import IMaterialSymbolsDiamondOutline from '~icons/material-symbols/diamond-outline'
 import IMaterialSymbolsCheckCircleOutline from '~icons/material-symbols/check-circle-outline'
-import IMaterialSymbolsCommentSharp from '~icons/material-symbols/comment-sharp'
-import IMaterialSymbolsDownload from '~icons/material-symbols/download'
 
 const { t } = useI18n()
 const { projectId } = defineProps<{
@@ -30,18 +19,17 @@ const authStore = useAuthStore()
 
 const filtersModalRef = useTemplateRef('filtersModalRef')
 const columnsModalRef = useTemplateRef('columnsModalRef')
-const employeesModalRef = useTemplateRef('employeesModalRef')
-const employeeLinkModalRef = useTemplateRef('employeeLinkModalRef')
+const addEmployeeModalRef = useTemplateRef('addEmployeeModalRef')
 
 const projectsStore = useProjectsStore()
-const employees = computed<Employee[]>(
-  () => projectsStore.projects.find((project) => project.id == projectId)?.employees || [],
+const employees = computed<JobRadarEmployeeView[]>(
+  () => projectsStore.jobRadarEmployees[projectId] || [],
 )
 const employeesFiltered = computed(() => {
   let result = employees.value
   if (filters.search) {
     result = result.filter((employee) =>
-      `${employee.first_name} ${employee.last_name} ${employee.email}`
+      `${employee.first_name} ${employee.last_name} ${employee.job_position ?? ''}`
         .toLocaleLowerCase()
         .includes(filters.search.toLocaleLowerCase()),
     )
@@ -62,17 +50,16 @@ const employeesFiltered = computed(() => {
   if (filters.early_leave !== null) {
     result = result.filter(({ early_leave }) => early_leave == filters.early_leave)
   }
-  if (filters.garden_leave !== null) {
-    result = result.filter(
-      ({ garden_leave_from }) => filters.garden_leave == Boolean(garden_leave_from),
-    )
-  }
   if (sortKey.value !== null) {
     result = result.slice(0).sort((employeeA, employeeB) => {
       if (sortKey.value !== null) {
         const column = columns.find(({ key }) => key == sortKey.value)
-        const valueA = sortDir.value ? employeeA[sortKey.value] : employeeB[sortKey.value]
-        const valueB = sortDir.value ? employeeB[sortKey.value] : employeeA[sortKey.value]
+        const valueA = sortDir.value
+          ? getColumnValue(employeeA, sortKey.value)
+          : getColumnValue(employeeB, sortKey.value)
+        const valueB = sortDir.value
+          ? getColumnValue(employeeB, sortKey.value)
+          : getColumnValue(employeeA, sortKey.value)
         switch (column?.type) {
           case 'number':
           case 'currency':
@@ -117,7 +104,7 @@ const currencyFormatter = (value: number) => {
 }
 
 type Column = {
-  key: keyof Employee
+  key: keyof JobRadarEmployeeView
   title: string
   icon?: FunctionalComponent
   type: 'currency' | 'number' | 'string' | 'date' | 'boolean'
@@ -149,233 +136,24 @@ const windingUpStatusColumn: Column = {
 const earlyLeaveColumn: Column = {
   key: 'early_leave',
   title: t('Early Leave'),
-  icon: IMaterialSymbolsCalendarMonthSharp,
+  icon: IMaterialSymbolsCheckCircleOutline,
   type: 'boolean',
 }
 
 const columns: Column[] = [
-  { key: 'first_name', title: t('First Name'), type: 'string' },
-  { key: 'last_name', title: t('Last Name'), type: 'string' },
-  {
-    key: 'address_street',
-    title: t('Address Street'),
-    icon: IMaterialSymbolsMapSearchOutline,
-    type: 'string',
-  },
-  {
-    key: 'address_street_no',
-    title: t('Address Street No'),
-    icon: IMaterialSymbolsMapSearchOutline,
-    type: 'string',
-  },
-  {
-    key: 'address_street_post_code',
-    title: t('Address Street Post Code'),
-    icon: IMaterialSymbolsMapSearchOutline,
-    type: 'string',
-  },
-  {
-    key: 'address_street_city',
-    title: t('Address Street City'),
-    icon: IMaterialSymbolsMapSearchOutline,
-    type: 'string',
-  },
-  { key: 'email', title: 'Email', icon: IMaterialSymbolsAlternateEmail, type: 'string' },
-  {
-    key: 'has_probatory_period_running',
-    title: t('Has Probatory Period Running'),
-    icon: IMaterialSymbolsWatchCheckOutline,
-    type: 'boolean',
-  },
-  {
-    key: 'reasons_for_special_protection',
-    title: t('Reasons For Special Protection'),
-    icon: IMaterialSymbolsShieldLockSharp,
-    type: 'string',
-  },
-  {
-    key: 'total_annual_salary_gross',
-    title: t('Total Annual Salary Gross'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  {
-    key: 'fixed_monthly_salary_gross',
-    title: t('Fixed Monthly Salary Gross'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  {
-    key: 'date_of_entry',
-    title: t('Date Of Entry'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'date',
-  },
-  {
-    key: 'seniority_in_years',
-    title: t('Seniority In Years'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'number',
-  },
-  {
-    key: 'date_of_birth',
-    title: t('Date Of Birth'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'date',
-  },
-  { key: 'age', title: t('Age'), icon: IMaterialSymbolsCalendarMonthSharp, type: 'number' },
-  {
-    key: 'has_spouse',
-    title: t('Has Spouse'),
-    icon: IMaterialSymbolsDiamondOutline,
-    type: 'boolean',
-  },
-  {
-    key: 'number_of_children',
-    title: t('Number Of Children'),
-    icon: IMaterialSymbolsChildCareOutline,
-    type: 'number',
-  },
-  {
-    key: 'has_disability',
-    title: t('Has Disability'),
-    icon: IMaterialSymbolsAccessibleSharp,
-    type: 'boolean',
-  },
-  {
-    key: 'limitation_equal_to_disability',
-    title: t('Limitation Equal To Disability'),
-    icon: IMaterialSymbolsAccessibleSharp,
-    type: 'boolean',
-  },
-  {
-    key: 'disability_degree',
-    title: t('Disability Degree'),
-    icon: IMaterialSymbolsAccessibleSharp,
-    type: 'number',
-  },
-  {
-    key: 'to_be_dismissed',
-    title: t('Termination'),
-    icon: IMaterialSymbolsCheckCircleOutline,
-    type: 'boolean',
-  },
-  {
-    key: 'termination_period',
-    title: t('Termination Period'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'number',
-  },
-  {
-    key: 'termination_date',
-    title: t('Termination Date'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'date',
-  },
-  { key: 'bonus', title: 'Bonus', icon: IMaterialSymbolsMoneyBag, type: 'currency' },
-  {
-    key: 'bonus_monthly',
-    title: t('Bonus Monthly'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  {
-    key: 'bonus_payout',
-    title: t('Bonus Payout'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  {
-    key: 'surcharges_disability',
-    title: t('Surcharges Disability'),
-    icon: IMaterialSymbolsAccessibleSharp,
-    type: 'currency',
-  },
-  {
-    key: 'surcharges_children',
-    title: t('Surcharges Children'),
-    icon: IMaterialSymbolsChildCareOutline,
-    type: 'currency',
-  },
-  {
-    key: 'surcharges_other',
-    title: t('Surcharges Other'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  { key: 'factor', title: t('Factor'), icon: IMaterialSymbolsMoneyBag, type: 'number' },
-  {
-    key: 'garden_leave_from',
-    title: t('Garden Leave From'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'date',
-  },
-  {
-    key: 'severance_base',
-    title: t('Severance Base'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  {
-    key: 'severance_total',
-    title: t('Severance Total'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'currency',
-  },
-  earlyLeaveColumn,
-  {
-    key: 'early_leave_from',
-    title: t('Early Leave From'),
-    icon: IMaterialSymbolsCalendarMonthSharp,
-    type: 'date',
-  },
-  {
-    key: 'remaining_salary_ratio',
-    title: t('Remaining Salary Ratio'),
-    icon: IMaterialSymbolsMoneyBag,
-    type: 'number',
-  },
-  {
-    key: 'comments',
-    title: t('Employee comments'),
-    icon: IMaterialSymbolsCommentSharp,
-    type: 'string',
-  },
-  {
-    key: 'vlp_eligible',
-    title: t('Eligible For VLP'),
-    icon: IMaterialSymbolsCalendarPersonCheck,
-    type: 'boolean',
-  },
-  {
-    key: 'winding_up',
-    title: t('Winding Up'),
-    icon: IMaterialSymbolsCheckCircleOutline,
-    type: 'boolean',
-  },
-  {
-    key: 'vlp_contract',
-    title: t('VLP Contract'),
-    icon: IMaterialSymbolsCalendarPersonCheck,
-    options: ['not-applicable', 'not-sent', 'sent', 'signed', 'original-received'],
-    type: 'string',
-  },
-  terminationStatusColumn,
-  vlpStatusColumn,
-  windingUpStatusColumn,
+  { key: 'first_name', title: 'Vorname', type: 'string' },
+  { key: 'last_name', title: 'Nachname', type: 'string' },
+  { key: 'job_position', title: 'Job Position', type: 'string' },
+  { key: 'address_street_city', title: 'City', type: 'string' },
 ]
-const alwaysOnColumns: Array<keyof Employee> = [
+const alwaysOnColumns: Array<keyof JobRadarEmployeeView> = [
   'first_name',
   'last_name',
-  'vlp_eligible',
-  'to_be_dismissed',
-  'termination_status',
-  'vlp_status',
-  'vlp_contract',
-  'winding_up_status',
+  'job_position',
+  'address_street_city',
 ]
-const activeColumns = ref<Set<keyof Employee>>(new Set(alwaysOnColumns))
-function toggleColumn(event: Event, column: keyof Employee) {
+const activeColumns = ref<Set<keyof JobRadarEmployeeView>>(new Set(alwaysOnColumns))
+function toggleColumn(event: Event, column: keyof JobRadarEmployeeView) {
   if ((event.target as HTMLInputElement).checked) {
     activeColumns.value.add(column)
   } else {
@@ -388,58 +166,39 @@ const filters = reactive<{
   vlp_status: string | null
   winding_up_status: string | null
   early_leave: boolean | null
-  garden_leave: boolean | null
 }>({
   search: '',
   termination_status: null,
   vlp_status: null,
   winding_up_status: null,
   early_leave: null,
-  garden_leave: null,
 })
 
 const filteredColumns = computed(() => columns.filter(({ key }) => activeColumns.value.has(key)))
-const sortKey = ref<keyof Employee | null>(null)
+const sortKey = ref<keyof JobRadarEmployeeView | null>(null)
 const sortDir = ref(true)
 
-const selectedEmployee = ref<Employee>()
-const employeeUrl = ref<string>('')
-async function openEmployeeAccessModal(employee: Employee) {
-  selectedEmployee.value = employee
-  const buildURL = (url: string) => {
-    if (/^(?:[a-z]+:)?\/\//i.test(url)) {
-      return url;
-    }
-    const { protocol, host } = window.location;
-    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
-    return `${protocol}//${host}${normalizedUrl}`;
-  }
-  employeeUrl.value = buildURL(import.meta.env.VITE_VLT_CLIENT_URL)
-  employeeLinkModalRef.value?.show()
-  const token = await projectsStore.getToken(selectedEmployee.value)
-  employeeUrl.value = buildURL(import.meta.env.VITE_VLT_CLIENT_URL + '/?' + token)
+function getJobPosition(employee: JobRadarEmployeeView): string {
+  return employee.job_position?.trim() || '-'
 }
 
-const dirty = ref(new Map<number, 'loading' | 'error'>())
-async function updateEmployee(employee: Employee) {
-  const id = employee.id as number
-  dirty.value.set(id, 'loading')
-  try {
-    await projectsStore.updateEmployee(employee)
-    dirty.value.delete(id)
-  } catch (error) {
-    console.error(error)
-    dirty.value.set(id, 'error')
+function getColumnValue(employee: JobRadarEmployeeView, key: keyof JobRadarEmployeeView): unknown {
+  if (key === 'job_position') {
+    return getJobPosition(employee)
   }
+
+  return employee[key]
 }
-function employeeRowClass(employee: Employee) {
-  const id = employee.id as number
-  return dirty.value.has(id) ? `--${dirty.value.get(id)}` : undefined
-}
-function copyEmployeeUrl() {
-  const el = document.querySelector('.employees-list-url-preview') as HTMLInputElement
-  el.select()
-  document.execCommand('copy')
+
+function formatDateValue(value: unknown): string {
+  if (value instanceof Date) {
+    return dateFormatter(value)
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? '-' : dateFormatter(parsed)
+  }
+  return '-'
 }
 
 const exporting = ref(false)
@@ -452,6 +211,12 @@ async function exportEmployeeUrls() {
   } finally {
     exporting.value = false
   }
+}
+
+async function deleteManual(employee: JobRadarEmployeeView) {
+  if (employee.source !== 'manual') return
+  if (!window.confirm(t('Remove this manually added employee?'))) return
+  await projectsStore.deleteJobRadarEmployee(projectId, employee.id)
 }
 </script>
 
@@ -479,10 +244,10 @@ async function exportEmployeeUrls() {
     </button>
     <button
       class="btn --primary --pill"
-      @click="employeesModalRef?.show"
+      @click="addEmployeeModalRef?.show"
       :disabled="!authStore.roles.includes('lawyer')"
     >
-      {{ $t('Add Employees') }}
+      {{ $t('Add Employee') }}
     </button>
   </div>
   <div class="employees-list-wrapper">
@@ -505,7 +270,7 @@ async function exportEmployeeUrls() {
               <IMdiChevronDown v-else @click="((sortKey = null), (sortDir = true))" />
             </span>
           </th>
-          <th>{{ $t('Access') }}</th>
+          <th class="employees-list-actions-col"></th>
         </tr>
       </thead>
       <tbody>
@@ -518,41 +283,29 @@ async function exportEmployeeUrls() {
         <template v-else>
           <tr
             v-for="employee in employeesFiltered"
-            :key="employee.id ?? employee.email"
-            :class="employeeRowClass(employee)"
+            :key="`${employee.source}-${employee.id}`"
           >
             <td v-for="column in filteredColumns" :key="column.key">
-              <template v-if="column.options && authStore.roles.includes('lawyer')">
-                <select
-                  class="select form-control"
-                  v-model="employee[column.key]"
-                  @change="updateEmployee(employee)"
-                >
-                  <option :value="null" disabled>-</option>
-                  <option v-for="option in column.options" :key="option" :value="option">
-                    {{ option }}
-                  </option>
-                </select>
-              </template>
-              <template v-else-if="column.type == 'date'">
-                {{ dateFormatter(new Date(employee[column.key] as string)) }}
+              <template v-if="column.type == 'date'">
+                {{ formatDateValue(getColumnValue(employee, column.key)) }}
               </template>
               <template v-else-if="column.type == 'currency'">
-                {{ currencyFormatter(employee[column.key] as number) }}
+                {{ currencyFormatter(Number(getColumnValue(employee, column.key) ?? 0)) }}
               </template>
               <template v-else-if="column.type == 'boolean'">
-                <IMaterialSymbolsCheckCircle v-if="employee[column.key]" />
+                <IMaterialSymbolsCheckCircle v-if="Boolean(getColumnValue(employee, column.key))" />
                 <IMaterialSymbolsDoNotDisturbOnOutline v-else />
               </template>
-              <template v-else>{{ employee[column.key] }}</template>
+              <template v-else>{{ getColumnValue(employee, column.key) }}</template>
             </td>
-            <td>
+            <td class="employees-list-actions-col">
               <button
-                :disabled="!employee.vlp_eligible"
-                :class="`btn ${employee.vlp_eligible ? '--primary' : '--secondary'} employees-list-link`"
-                @click="openEmployeeAccessModal(employee)"
+                v-if="employee.source === 'manual' && authStore.roles.includes('lawyer')"
+                class="employees-list-delete"
+                :title="$t('Delete')"
+                @click="deleteManual(employee)"
               >
-                <IMdiWebCheck /> {{ $t('Access URL') }}
+                <IMaterialSymbolsDeleteOutline />
               </button>
             </td>
           </tr>
@@ -599,14 +352,6 @@ async function exportEmployeeUrls() {
           <option :value="false">{{ $t('No') }}</option>
         </select>
       </label>
-      <label class="col form-group">
-        Garden leave:
-        <select class="select form-control" v-model="filters.garden_leave">
-          <option :value="null">{{ $t('All') }}</option>
-          <option :value="true">{{ $t('Yes') }}</option>
-          <option :value="false">{{ $t('No') }}</option>
-        </select>
-      </label>
     </div>
   </ModalDialog>
   <ModalDialog ref="columnsModalRef">
@@ -627,22 +372,8 @@ async function exportEmployeeUrls() {
       </label>
     </div>
   </ModalDialog>
-  <ModalDialog ref="employeesModalRef">
-    <EmployeesUpload :projectId="projectId" @close="employeesModalRef?.hide" />
-  </ModalDialog>
-  <ModalDialog ref="employeeLinkModalRef">
-    <div class="modal-head">
-      <h1>{{ $t('Employee Access URL') }}</h1>
-      <button class="btn --primary" @click="employeeLinkModalRef?.hide">{{ $t('Close') }}</button>
-    </div>
-    <div class="modal-main" v-if="selectedEmployee">
-      <p>{{ selectedEmployee.first_name }} {{ selectedEmployee.last_name }}:</p>
-      <input class="employees-list-url-preview" :value="employeeUrl" />
-      <button class="btn --primary" @click="copyEmployeeUrl">
-        <IMaterialSymbolsContentCopyOutline />
-        {{ $t('Copy URL') }}
-      </button>
-    </div>
+  <ModalDialog ref="addEmployeeModalRef">
+    <AddEmployeeForm :projectId="projectId" @close="addEmployeeModalRef?.hide" />
   </ModalDialog>
 </template>
 
@@ -696,6 +427,28 @@ async function exportEmployeeUrls() {
 .employees-list td {
   padding: 1rem;
   background: var(--color-background);
+}
+.employees-list-actions-col {
+  width: 3rem;
+  text-align: center;
+}
+.employees-list-delete {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: var(--border-radius);
+}
+.employees-list-delete svg {
+  vertical-align: middle;
+}
+@media (hover: hover) {
+  .employees-list-delete:hover {
+    color: var(--color-kliemt);
+    background: var(--color-background-focus);
+  }
 }
 .employees-list tr.--error td {
   background: var(--color-background-error);

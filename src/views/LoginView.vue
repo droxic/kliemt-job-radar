@@ -6,18 +6,21 @@ import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 
 const authStore = useAuthStore()
-if (authStore.authenticated) {
-  routerPush(AppRouteNames.HOME)
-}
 
 const router = useRouter()
 
 onMounted(async () => {
+  await authStore.ensureAuthValidated()
+  if (authStore.authenticated) {
+    routerPush(AppRouteNames.HOME)
+    return
+  }
+
   const loginCallbackRoute = router.resolve({name:AppRouteNames.LOGIN_CALLBACK})
   const loginCallbackUrl = new URL(loginCallbackRoute.href, window.location.origin).href
 
   const { code_verifier, code_challenge } = await pkceChallenge()
-  sessionStorage.setItem('code_verifier_vlt', code_verifier)
+  sessionStorage.setItem('code_verifier_job_radar', code_verifier)
 
   const params = new URLSearchParams({
     client_id: import.meta.env.VITE_OAUTH_CLIENT_ID,

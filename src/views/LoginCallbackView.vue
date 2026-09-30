@@ -16,11 +16,11 @@ const authStore = useAuthStore()
 
 const status = ref('Please wait...')
 
-const codeVerifier = sessionStorage.getItem('code_verifier_vlt');
+const codeVerifier = sessionStorage.getItem('code_verifier_job_radar');
 
 if (!code || !codeVerifier) {
   // Missing code or verifier — restart login flow
-  sessionStorage.removeItem('code_verifier_vlt')
+  sessionStorage.removeItem('code_verifier_job_radar')
   routerPush(AppRouteNames.LOGIN)
 } else {
   try {
@@ -32,11 +32,11 @@ if (!code || !codeVerifier) {
       code_verifier: codeVerifier,
     });
 
-    sessionStorage.removeItem('code_verifier_vlt')
+    sessionStorage.removeItem('code_verifier_job_radar')
     await authStore.loginWithToken(access_token);
     routerPush(AppRouteNames.HOME)
   } catch (error) {
-    sessionStorage.removeItem('code_verifier_vlt')
+    sessionStorage.removeItem('code_verifier_job_radar')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const message = (error as any).body?.message ?? 'Something went wrong.'
     console.error('SSO token exchange failed:', message)

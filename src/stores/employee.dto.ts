@@ -64,3 +64,29 @@ export interface EmployeeInput {
 }
 
 export type Employee = Required<EmployeeInput> & { id?: number }
+
+export type JobRadarEmployeeSource = 'project' | 'manual'
+
+/** Normalized Job Radar candidate (eligible project employee or manual one). */
+export interface JobRadarEmployeeView {
+  id: number
+  source: JobRadarEmployeeSource
+  first_name: string
+  last_name: string
+  job_position: string | null
+  address_street: string | null
+  address_street_city: string | null
+  termination_status: string | null
+  vlp_status: string | null
+  winding_up_status: string | null
+  early_leave: boolean | null
+}
+
+/** Payload for manually adding a Job-Radar-only employee. */
+export interface JobRadarEmployeeInput {
+  first_name: string
+  last_name: string
+  job_position?: string
+  address_street?: string
+  address_street_city?: string
+}

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useProjectsStore } from '@/stores/projects'
 import EmployeeList from '@/components/EmployeeList.vue'
-import ProjectDashboard from '@/components/ProjectDashboard.vue'
+import JobRadarView from './JobRadarView.vue'
 
 const { id } = defineProps<{
   id: string
@@ -11,6 +11,7 @@ const { id } = defineProps<{
 const projectsStore = useProjectsStore()
 try {
   await projectsStore.loadProject(id)
+  await projectsStore.loadJobRadarEmployees(parseInt(id))
 } catch (error) {
   console.error(error)
   const index = projectsStore.projects.findIndex((project) => project.id == parseInt(id))
@@ -19,6 +20,7 @@ try {
   }
 }
 const project = computed(() => projectsStore.projects.find((project) => project.id == parseInt(id)))
+const jobRadarEmployees = computed(() => projectsStore.jobRadarEmployees[parseInt(id)] ?? [])
 </script>
 
 <template>
@@ -33,28 +35,12 @@ const project = computed(() => projectsStore.projects.find((project) => project.
         <strong>{{ project.clients.map(({ company_name }) => company_name).join(', ') }}</strong>
       </h3>
       <h3>
-        <em>{{ $t('Employees') }}<span>:</span></em> <strong>{{ project.employees.length }}</strong>
-      </h3>
-      <h3>
-        <em>{{ $t('Clearing Point') }}<span>:</span></em>
-        <strong>
-          <template v-if="project.clearing_point == 'auto'">{{
-            project.clearing_point_email
-          }}</template>
-          <template v-else-if="project.clearing_point">{{ project.clearing_point }}</template>
-          <template v-else>-</template>
-        </strong>
-      </h3>
-      <h3>
-        <em>{{ $t('Employee self Service') }}<span>:</span></em>
-        <strong>{{ project.employee_self_service || '-' }}</strong>
-      </h3>
-      <h3>
-        <em>{{ $t('Level of Kliemt support') }}<span>:</span></em>
-        <strong>{{ project.kliemt_support_level || '-' }}</strong>
+        <em>{{ $t('Employees') }}<span>:</span></em>
+        <strong>{{ jobRadarEmployees.length }}</strong>
       </h3>
     </div>
-    <ProjectDashboard :project="project" />
+    <JobRadarView :project-id="project.id" :employees="jobRadarEmployees" />
+    <h2 class="p-sub-heading">{{ $t('Employees') }}</h2>
     <EmployeeList :projectId="project.id" />
   </div>
   <div v-else>{{ $t('Project not found') }}</div>
@@ -97,5 +83,10 @@ const project = computed(() => projectsStore.projects.find((project) => project.
 }
 .p-project-summary h3 span {
   display: none;
+}
+
+.p-sub-heading {
+  margin: 1rem 0 0.5rem;
+  color: var(--color-kliemt);
 }
 </style>
