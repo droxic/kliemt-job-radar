@@ -201,18 +201,6 @@ function formatDateValue(value: unknown): string {
   return '-'
 }
 
-const exporting = ref(false)
-async function exportEmployeeUrls() {
-  exporting.value = true
-  try {
-    await projectsStore.exportEmployeeUrls(projectId)
-  } catch (error) {
-    console.error('Export failed:', error)
-  } finally {
-    exporting.value = false
-  }
-}
-
 async function deleteManual(employee: JobRadarEmployeeView) {
   if (employee.source !== 'manual') return
   if (!window.confirm(t('Remove this manually added employee?'))) return
@@ -234,13 +222,6 @@ async function deleteManual(employee: JobRadarEmployeeView) {
     </button>
     <button class="btn --primary --outline --pill" @click="columnsModalRef?.show">
       <IMdiFormatColumns /> {{ $t('Columns') }}
-    </button>
-    <button
-      class="btn --primary --outline --pill"
-      @click="exportEmployeeUrls"
-      :disabled="!authStore.roles.includes('lawyer') || employees.length === 0 || exporting"
-    >
-      <IMaterialSymbolsDownload /> {{ exporting ? $t('Exporting...') : $t('Export URLs') }}
     </button>
     <button
       class="btn --primary --pill"

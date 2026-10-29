@@ -212,6 +212,7 @@ function filenameFrom(response: Response): string | null {
     <label class="col form-group">
       {{ $t('Application Deadline') }}:
       <input class="input form-control" type="date" v-model="form.application_deadline" />
+      <small>{{ $t('application-deadline-hint') }}</small>
     </label>
     <label class="form-group export-full export-checkbox">
       <input type="checkbox" v-model="form.include_competitor_clause" />

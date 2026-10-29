@@ -45,7 +45,6 @@ export const de = {
   'Employee data': 'Daten des Beschäftigten',
   'Employee self Service': 'Self-Service für Beschäftigte',
   Export: 'Exportieren',
-  'Export URLs': 'URLs exportieren',
   'Export to PDF': 'Als PDF exportieren',
   'Exporting...': 'Wird exportiert...',
   'export-pdf-summary':
@@ -66,6 +65,7 @@ export const de = {
   'Dispatch Method': 'Versendungsart',
   'Our Reference': 'Unser Zeichen',
   'Application Deadline': 'Fristende Bewerbungen',
+  'application-deadline-hint': 'Ohne Angabe: vier Wochen ab heute.',
   'Include the non-compete waiver paragraph':
     'Absatz zum Verzicht auf das Wettbewerbsverbot aufnehmen',
   'Loading...': 'Wird geladen...',
