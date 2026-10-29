@@ -36,6 +36,17 @@ server {
         try_files \$uri =404;
     }
 
+    # index.html names the content-hashed bundles above, so it must never be
+    # served stale: a cached copy keeps pointing at the previous build and the
+    # user sees the old app until they hard-refresh. With no Cache-Control at
+    # all, browsers fall back to heuristic freshness (roughly a tenth of the
+    # file's age), which is how a deploy could go unnoticed for days.
+    # no-cache still allows a cheap 304 via ETag; it only forbids using the
+    # copy without revalidating.
+    location = /index.html {
+        add_header Cache-Control "no-cache, must-revalidate";
+    }
+
     # Handle SPA routing - only for HTML requests
     location / {
         try_files \$uri \$uri/ /index.html;
