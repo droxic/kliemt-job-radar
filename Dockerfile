@@ -23,12 +23,50 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./client /usr/share/nginx/html/client
 
+COPY <<'JSEOF' /usr/share/nginx/html/stale-asset.js
+// Served in place of a 404 for a missing content-hashed bundle, which means
+// this browser is running an index.html cached from before a deploy. It cannot
+// recover by itself: the missing file is the entry script, so no application
+// code ever runs. Reloading past the cached copy fixes it permanently, because
+// the fresh index.html is sent with Cache-Control: no-cache.
+(function () {
+  var marker = '__stale'
+  if (location.search.indexOf(marker) !== -1) {
+    console.error('Stale bundle recovery already attempted for this page.')
+    return
+  }
+  var sep = location.search ? '&' : '?'
+  location.replace(
+    location.pathname + location.search + sep + marker + '=' + Date.now() + location.hash
+  )
+})()
+JSEOF
+
 COPY <<EOF /etc/nginx/conf.d/default.conf
 server {
     listen 80;
     server_name localhost;
     root /usr/share/nginx/html;
     index index.html;
+
+    # A content-hashed bundle that is missing means the browser is running an
+    # index.html cached from before a deploy. It cannot recover on its own:
+    # the missing file is the entry script, so no application code ever runs
+    # and the page just stays blank. Serve a recovery script instead of a 404.
+    # Must precede the generic asset rule below - nginx tries regex locations
+    # in the order they are defined.
+    location ~* ^/assets/.+\.js\$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files \$uri @stale_asset;
+    }
+
+    location @stale_asset {
+        default_type application/javascript;
+        add_header Cache-Control "no-store";
+        add_header X-Content-Type-Options nosniff;
+        try_files /stale-asset.js =404;
+    }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
